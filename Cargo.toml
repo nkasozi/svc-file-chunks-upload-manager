@@ -1,0 +1,28 @@
+[package]
+name = "svc-file-chunks-upload-manager"
+version = "0.1.0"
+authors = ["Nkasozy <nkasozi@gmail.com>"]
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+dapr = "0.8.0"
+tokio = { version = "1.17.0", features = ["full"] }
+actix-web = "4.0.0"
+serde = { version = "1.0.136", features = ["derive"] }
+lazy_static = "1.4.0"
+mockall = "0.11.0"
+dyn-clone = "1.0.5"
+chrono = "0.4.19"
+async-trait = { version = "0.1.53" }
+uuid = { version = "1.0.0", features = [
+    "v4",                # Lets you generate random UUIDs
+    "fast-rng",          # Use a faster (but still sufficiently random) RNG
+    "macro-diagnostics", # Enable better diagnostics for compile-time UUIDs
+] }
+serde_json = "1.0.79"
+actix-rt = "*"
+validator = { version = "0.15.0", features = ["derive"] }
+nameof = "1.2.2"
+tonic = "0.5"
