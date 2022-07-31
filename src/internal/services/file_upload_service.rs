@@ -8,19 +8,18 @@ use crate::internal::{
         file_chunk_upload_service::FileChunkUploadServiceInterface,
         pubsub_repo::PubSubRepositoryInterface, recon_tasks_repo::ReconTasksRepositoryInterface,
     },
-    models::{
-        entities::{
-            app_error::{AppError, AppErrorKind},
-            file_upload_chunk::{
-                FileUploadChunk, FileUploadChunkRow, FileUploadChunkSource, ReconStatus,
-            },
-            recon_task::ReconFileMetaData,
-        },
-        view_models::{
-            upload_file_chunk_request::UploadFileChunkRequest,
+    models::view_models::{
+        requests::upload_file_chunk_request::UploadFileChunkRequest,
+        responses::{
+            svc_task_details_repo_responses::ReconFileMetaData,
             upload_file_chunk_response::UploadFileChunkResponse,
         },
     },
+};
+
+use crate::internal::shared_reconciler_rust_libraries::models::entities::{
+    app_errors::{AppError, AppErrorKind},
+    file_upload_chunk::{FileUploadChunk, FileUploadChunkRow, FileUploadChunkSource, ReconStatus},
 };
 
 const FILE_CHUNK_PREFIX: &'static str = "FILE-CHUNK";
@@ -253,16 +252,16 @@ mod tests {
             pubsub_repo::{MockPubSubRepositoryInterface, PubSubRepositoryInterface},
             recon_tasks_repo::{MockReconTasksRepositoryInterface, ReconTasksRepositoryInterface},
         },
-        models::{
-            entities::{
-                app_error::{AppError, AppErrorKind},
-                file_upload_chunk::FileUploadChunkSource,
-                recon_task::{
-                    ComparisonPair, ReconFileMetaData, ReconFileType, ReconTaskDetails,
-                    ReconciliationConfigs,
-                },
+        models::view_models::{
+            requests::upload_file_chunk_request::UploadFileChunkRequest,
+            responses::svc_task_details_repo_responses::ReconFileMetaData,
+        },
+        shared_reconciler_rust_libraries::models::entities::{
+            app_errors::{AppError, AppErrorKind},
+            file_upload_chunk::FileUploadChunkSource,
+            recon_tasks_models::{
+                ComparisonPair, ReconFileType, ReconTaskDetails, ReconciliationConfigs,
             },
-            view_models::upload_file_chunk_request::UploadFileChunkRequest,
         },
     };
 

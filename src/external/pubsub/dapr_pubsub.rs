@@ -1,6 +1,9 @@
 use crate::internal::{
-    models::entities::{app_error::AppError, app_error::AppErrorKind, file_upload_chunk::FileUploadChunk},
     interfaces::pubsub_repo::PubSubRepositoryInterface,
+    shared_reconciler_rust_libraries::models::entities::{
+        app_errors::{AppError, AppErrorKind},
+        file_upload_chunk::FileUploadChunk,
+    },
 };
 use async_trait::async_trait;
 use dapr::{dapr::dapr::proto::runtime::v1::dapr_client::DaprClient, Client};

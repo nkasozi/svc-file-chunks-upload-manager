@@ -1,12 +1,12 @@
-use crate::internal::{
-    interfaces::recon_tasks_repo::ReconTasksRepositoryInterface,
-    models::entities::{
-        app_error::AppError, app_error::AppErrorKind, recon_task::ReconFileMetaData,
-    },
-};
 use async_trait::async_trait;
 use dapr::{dapr::dapr::proto::runtime::v1::dapr_client::DaprClient, Client};
 use tonic::transport::Channel as TonicChannel;
+
+use crate::internal::{
+    interfaces::recon_tasks_repo::ReconTasksRepositoryInterface,
+    models::view_models::responses::svc_task_details_repo_responses::ReconFileMetaData,
+    shared_reconciler_rust_libraries::models::entities::app_errors::{AppError, AppErrorKind},
+};
 
 pub struct ReconTasksRepositoryManager {
     //the dapr server ip
@@ -43,7 +43,7 @@ impl ReconTasksRepositoryInterface for ReconTasksRepositoryManager {
                     Ok(file_metadata) => return Ok(file_metadata),
                     Err(e) => {
                         return Err(AppError::new(
-                            AppErrorKind::ServiceResponseError,
+                            AppErrorKind::ResponseUnmarshalError,
                             e.to_string(),
                         ))
                     }

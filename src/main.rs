@@ -8,11 +8,9 @@ use crate::{
     },
     internal::{
         interfaces::file_chunk_upload_service::FileChunkUploadServiceInterface,
-        models::{
-            entities::app_error::AppErrorKind,
-            view_models::upload_file_chunk_request::UploadFileChunkRequest,
-        },
+        models::view_models::requests::upload_file_chunk_request::UploadFileChunkRequest,
         services::file_upload_service::FileChunkUploadService,
+        shared_reconciler_rust_libraries::models::entities::app_errors::AppErrorKind,
     },
 };
 use actix_web::{
