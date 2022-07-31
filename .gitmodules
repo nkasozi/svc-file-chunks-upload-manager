@@ -1,0 +1,4 @@
+[submodule "src/internal/shared_reconciler_rust_libraries"]
+	path = src/internal/shared_reconciler_rust_libraries
+	url = https://github.com/nkasozi/shared_reconciler_rust_libraries.git
+	branch = master
