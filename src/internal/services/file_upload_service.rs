@@ -6,14 +6,18 @@ use validator::Validate;
 use crate::internal::{
     interfaces::{
         file_chunk_upload_service::FileChunkUploadServiceInterface,
-        pubsub_repo::PubSubRepositoryInterface, recon_tasks_repo::ReconTasksRepositoryInterface,
+        pubsub_repo::PubSubRepositoryInterface,
+        recon_tasks_repo::ReconTasksDetailsRetrieverInterface,
     },
     models::view_models::{
         requests::upload_file_chunk_request::UploadFileChunkRequest,
         responses::{
-            svc_task_details_repo_responses::ReconFileMetaData,
+            svc_task_details_repo_responses::ReconTaskResponseDetails,
             upload_file_chunk_response::UploadFileChunkResponse,
         },
+    },
+    shared_reconciler_rust_libraries::models::entities::recon_tasks_models::{
+        ComparisonPair, ReconFileMetaData,
     },
 };
 
@@ -26,7 +30,7 @@ const FILE_CHUNK_PREFIX: &'static str = "FILE-CHUNK";
 
 pub struct FileChunkUploadService {
     pub file_upload_repo: Box<dyn PubSubRepositoryInterface>,
-    pub recon_tasks_repo: Box<dyn ReconTasksRepositoryInterface>,
+    pub recon_tasks_repo: Box<dyn ReconTasksDetailsRetrieverInterface>,
 }
 
 #[async_trait]
@@ -54,14 +58,14 @@ impl FileChunkUploadServiceInterface for FileChunkUploadService {
         }
 
         //get recon file metadata
-        let recon_file_metadata = self
+        let recon_task_details = self
             .recon_tasks_repo
             .get_recon_task_details(&upload_file_chunk_request.upload_request_id)
             .await?;
 
         //transform into the repo model
         let file_upload_chunk =
-            self.transform_into_file_upload_chunk(upload_file_chunk_request, recon_file_metadata);
+            self.transform_into_file_upload_chunk(upload_file_chunk_request, recon_task_details);
 
         let file_save_result;
 
@@ -95,7 +99,7 @@ impl FileChunkUploadService {
     fn transform_into_file_upload_chunk(
         &self,
         upload_file_chunk_request: UploadFileChunkRequest,
-        recon_file_metadata: ReconFileMetaData,
+        recon_task_details: ReconTaskResponseDetails,
     ) -> FileUploadChunk {
         FileUploadChunk {
             id: self.generate_uuid(FILE_CHUNK_PREFIX),
@@ -104,15 +108,13 @@ impl FileChunkUploadService {
             chunk_source: upload_file_chunk_request.chunk_source.clone(),
             chunk_rows: self.transform_into_chunk_rows(
                 &mut upload_file_chunk_request.clone(),
-                &mut recon_file_metadata.clone(),
+                &mut recon_task_details.comparison_file_metadata.clone(),
+                recon_task_details.task_details.comparison_pairs.clone(),
             ),
             date_created: chrono::Utc::now().timestamp(),
             date_modified: chrono::Utc::now().timestamp(),
-            comparison_pairs: recon_file_metadata
-                .recon_task_details
-                .comparison_pairs
-                .clone(),
-            recon_config: recon_file_metadata.recon_task_details.recon_config.clone(),
+            comparison_pairs: recon_task_details.task_details.comparison_pairs.clone(),
+            recon_config: recon_task_details.task_details.recon_config.clone(),
         }
     }
 
@@ -120,6 +122,7 @@ impl FileChunkUploadService {
         &self,
         upload_file_chunk_request: &mut UploadFileChunkRequest,
         recon_file_meta_data: &mut ReconFileMetaData,
+        comparison_pairs: Vec<ComparisonPair>,
     ) -> Vec<FileUploadChunkRow> {
         let mut parsed_chunk_rows: Vec<FileUploadChunkRow> = vec![];
 
@@ -132,11 +135,11 @@ impl FileChunkUploadService {
             );
 
             let parsed_chunk_row = parse_colum_values_from_row(
-                recon_file_meta_data,
                 upload_file_chunk_request.chunk_source,
                 columns_in_row_from_upload_file_chunk,
                 row_in_upload_file_chunk.clone(),
                 row_index,
+                comparison_pairs.clone(),
             );
 
             parsed_chunk_rows.push(parsed_chunk_row);
@@ -155,11 +158,11 @@ impl FileChunkUploadService {
 }
 
 fn parse_colum_values_from_row(
-    recon_file_meta_data: &mut ReconFileMetaData,
     chunk_source: FileUploadChunkSource,
     upload_file_columns_in_row: Vec<String>,
     upload_file_row: String,
     row_index: i32,
+    comparison_pairs: Vec<ComparisonPair>,
 ) -> FileUploadChunkRow {
     //set up the parsed row in a pending state
     let mut parsed_chunk_row = FileUploadChunkRow {
@@ -169,11 +172,7 @@ fn parse_colum_values_from_row(
         recon_result_reasons: vec![],
     };
 
-    for comparison_pair in recon_file_meta_data
-        .recon_task_details
-        .comparison_pairs
-        .clone()
-    {
+    for comparison_pair in comparison_pairs {
         match chunk_source {
             FileUploadChunkSource::ComparisonFileChunk => {
                 if comparison_pair.comparison_column_index > upload_file_columns_in_row.len() {
@@ -250,17 +249,20 @@ mod tests {
         interfaces::{
             file_chunk_upload_service::FileChunkUploadServiceInterface,
             pubsub_repo::{MockPubSubRepositoryInterface, PubSubRepositoryInterface},
-            recon_tasks_repo::{MockReconTasksRepositoryInterface, ReconTasksRepositoryInterface},
+            recon_tasks_repo::{
+                MockReconTasksDetailsRetrieverInterface, ReconTasksDetailsRetrieverInterface,
+            },
         },
         models::view_models::{
             requests::upload_file_chunk_request::UploadFileChunkRequest,
-            responses::svc_task_details_repo_responses::ReconFileMetaData,
+            responses::svc_task_details_repo_responses::ReconTaskResponseDetails,
         },
         shared_reconciler_rust_libraries::models::entities::{
             app_errors::{AppError, AppErrorKind},
             file_upload_chunk::FileUploadChunkSource,
             recon_tasks_models::{
-                ComparisonPair, ReconFileType, ReconTaskDetails, ReconciliationConfigs,
+                ComparisonPair, ReconFileMetaData, ReconFileType, ReconTaskDetails,
+                ReconciliationConfigs,
             },
         },
     };
@@ -269,30 +271,42 @@ mod tests {
 
     fn setup() -> (
         Box<MockPubSubRepositoryInterface>,
-        Box<MockReconTasksRepositoryInterface>,
+        Box<MockReconTasksDetailsRetrieverInterface>,
     ) {
         let mock_file_upload_repo = Box::new(MockPubSubRepositoryInterface::new());
-        let mock_recon_tasks_repo = Box::new(MockReconTasksRepositoryInterface::new());
+        let mock_recon_tasks_repo = Box::new(MockReconTasksDetailsRetrieverInterface::new());
         return (mock_file_upload_repo, mock_recon_tasks_repo);
     }
 
-    fn dummy_success_recon_task_details() -> ReconFileMetaData {
-        ReconFileMetaData {
-            id: String::from("TEST-FILE-1"),
-            file_name: String::from("TEST-FILE-1"),
-            row_count: 1000,
-            column_delimiters: vec![String::from(",")],
-            recon_file_type: ReconFileType::ComparisonReconFile,
-            column_headers: vec![String::from("ID")],
-            file_hash: String::from("SOME-HASH"),
-            recon_task_details: ReconTaskDetails {
-                id: String::from("SOME-RECON-TASK"),
-                source_file_id: String::from("SRC-FILE-1"),
-                comparison_file_id: String::from("CMP-FILE-1"),
+    fn dummy_success_recon_task_details() -> ReconTaskResponseDetails {
+        ReconTaskResponseDetails {
+            task_id: String::from("task-1234"),
+            task_details: ReconTaskDetails {
+                id: String::from("task-1234"),
+                source_file_id: String::from("src-file-1234"),
+                comparison_file_id: String::from("cmp-file-1234"),
                 is_done: false,
                 has_begun: true,
                 comparison_pairs: vec![new_same_column_index_comparison_pair(0)],
                 recon_config: default_recon_configs(),
+            },
+            source_file_metadata: ReconFileMetaData {
+                id: String::from("src-file-1234"),
+                file_name: String::from("src-file-1234"),
+                row_count: 1000,
+                column_delimiters: vec![],
+                recon_file_type: ReconFileType::SourceReconFile,
+                column_headers: vec![String::from("header1"), String::from("header2")],
+                file_hash: String::from("src-file-1234"),
+            },
+            comparison_file_metadata: ReconFileMetaData {
+                id: String::from("cmp-file-1234"),
+                file_name: String::from("cmp-file-1234"),
+                row_count: 1000,
+                column_delimiters: vec![String::from(",")],
+                recon_file_type: ReconFileType::ComparisonReconFile,
+                column_headers: vec![String::from("header1"), String::from("header2")],
+                file_hash: String::from("cmp-file-1234"),
             },
         }
     }
@@ -308,7 +322,7 @@ mod tests {
 
     fn setup_service_under_test(
         pubsub: Box<dyn PubSubRepositoryInterface>,
-        recon_tasks_repo: Box<dyn ReconTasksRepositoryInterface>,
+        recon_tasks_repo: Box<dyn ReconTasksDetailsRetrieverInterface>,
     ) -> FileChunkUploadService {
         FileChunkUploadService {
             file_upload_repo: pubsub,

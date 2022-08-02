@@ -4,7 +4,7 @@ mod internal;
 use crate::{
     external::{
         pubsub::dapr_pubsub::DaprPubSubRepositoryManager,
-        repositories::recon_tasks_repo::ReconTasksRepositoryManager,
+        repositories::recon_tasks_repo::ReconTasksDetailsRetriever,
     },
     internal::{
         interfaces::file_chunk_upload_service::FileChunkUploadServiceInterface,
@@ -68,7 +68,7 @@ async fn main() -> std::io::Result<()> {
                 dapr_pubsub_primary_file_topic: app_settings.dapr_pubsub_primary_file_topic.clone(),
             }),
 
-            recon_tasks_repo: Box::new(ReconTasksRepositoryManager {
+            recon_tasks_repo: Box::new(ReconTasksDetailsRetriever {
                 dapr_grpc_server_address: app_settings.dapr_grpc_server_address.clone(),
 
                 recon_tasks_service_name: app_settings.recon_tasks_service_name.clone(),
