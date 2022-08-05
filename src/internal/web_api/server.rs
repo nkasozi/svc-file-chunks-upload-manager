@@ -4,7 +4,7 @@ use crate::{
         repositories::recon_tasks_retriever::ReconTasksDetailsRetriever,
     },
     internal::{
-        api::handlers,
+        web_api::handlers,
         interfaces::file_chunk_upload_service::FileChunkUploadServiceInterface,
         services::{
             core_logic::to_entity_transfomer::ToEntityTransfomer,
