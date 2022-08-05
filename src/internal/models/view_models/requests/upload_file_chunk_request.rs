@@ -13,6 +13,13 @@ pub struct UploadFileChunkRequest {
 
     pub chunk_source: FileUploadChunkSource,
 
-    #[validate(length(min = 1, message = "please supply the chunk rows"))]
-    pub chunk_rows: Vec<String>,
+    #[validate]
+    pub chunk_rows: Vec<FileRow>,
+}
+
+#[derive(Serialize, Deserialize, Clone, Validate, Debug)]
+pub struct FileRow {
+    #[validate(length(min = 1, message = "please data in the file row"))]
+    pub raw_data: String,
+    pub row_number: u64,
 }
