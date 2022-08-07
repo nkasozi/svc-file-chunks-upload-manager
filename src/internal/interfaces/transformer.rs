@@ -9,7 +9,7 @@ use crate::internal::{
 };
 
 #[automock]
-pub trait ToEntityTransfomerInterface: Send + Sync {
+pub trait TransformerInterface: Send + Sync {
     fn transform_into_file_upload_chunk(
         &self,
         upload_file_chunk_request: UploadFileChunkRequest,

@@ -4,12 +4,11 @@ use crate::{
         repositories::recon_tasks_retriever::ReconTasksDetailsRetriever,
     },
     internal::{
-        web_api::handlers,
         interfaces::file_chunk_upload_service::FileChunkUploadServiceInterface,
         services::{
-            core_logic::to_entity_transfomer::ToEntityTransfomer,
-            file_upload_service::FileChunkUploadService,
+            core_logic::transformer::Transformer, file_upload_service::FileChunkUploadService,
         },
+        web_api::handlers,
     },
 };
 use actix_web::{web::Data, App, HttpServer};
@@ -78,7 +77,7 @@ fn setup_service(app_settings: AppSettings) -> Box<dyn FileChunkUploadServiceInt
             recon_tasks_service_name: app_settings.recon_tasks_service_name.clone(),
         }),
 
-        to_entity_transformer: Box::new(ToEntityTransfomer {}),
+        to_entity_transformer: Box::new(Transformer {}),
     });
     service
 }

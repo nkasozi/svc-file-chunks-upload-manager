@@ -3,7 +3,7 @@ use super::file_upload_service::FileChunkUploadService;
 #[actix_rt::test]
 async fn given_valid_request_calls_correct_dependencie_and_returns_success() {
     let (mut mock_file_upload_repo, mut mock_recon_tasks_repo, mut mock_to_entity_transformer) =
-        setup();
+        setup_dependencies();
 
     mock_recon_tasks_repo
         .expect_get_recon_task_details()
@@ -33,7 +33,7 @@ async fn given_valid_request_calls_correct_dependencie_and_returns_success() {
 #[actix_rt::test]
 async fn given_invalid_request_returns_error() {
     let (mut mock_file_upload_repo, mut mock_recon_tasks_repo, mut mock_to_entity_transformer) =
-        setup();
+        setup_dependencies();
 
     mock_recon_tasks_repo
         .expect_get_recon_task_details()
@@ -64,7 +64,7 @@ async fn given_invalid_request_returns_error() {
 #[actix_rt::test]
 async fn given_valid_request_but_repo_returns_error_returns_error() {
     let (mut mock_file_upload_repo, mut mock_recon_tasks_repo, mut mock_to_entity_transformer) =
-        setup();
+        setup_dependencies();
 
     mock_recon_tasks_repo
         .expect_get_recon_task_details()
@@ -103,7 +103,7 @@ use crate::internal::{
         recon_tasks_repo::{
             MockReconTasksDetailsRetrieverInterface, ReconTasksDetailsRetrieverInterface,
         },
-        to_entity_transformer::{MockToEntityTransfomerInterface, ToEntityTransfomerInterface},
+        transformer::{MockTransformerInterface, TransformerInterface},
     },
     models::view_models::{
         requests::upload_file_chunk_request::{FileRow, UploadFileChunkRequest},
@@ -119,14 +119,14 @@ use crate::internal::{
     },
 };
 
-fn setup() -> (
+fn setup_dependencies() -> (
     Box<MockPubSubRepositoryInterface>,
     Box<MockReconTasksDetailsRetrieverInterface>,
-    Box<MockToEntityTransfomerInterface>,
+    Box<MockTransformerInterface>,
 ) {
     let mock_file_upload_repo = Box::new(MockPubSubRepositoryInterface::new());
     let mock_recon_tasks_repo = Box::new(MockReconTasksDetailsRetrieverInterface::new());
-    let mock_to_entity_transformer = Box::new(MockToEntityTransfomerInterface::new());
+    let mock_to_entity_transformer = Box::new(MockTransformerInterface::new());
     return (
         mock_file_upload_repo,
         mock_recon_tasks_repo,
@@ -197,7 +197,7 @@ fn dummy_valid_file_chunk() -> FileUploadChunk {
 fn setup_service_under_test(
     pubsub: Box<dyn PubSubRepositoryInterface>,
     recon_tasks_repo: Box<dyn ReconTasksDetailsRetrieverInterface>,
-    to_entity_transformer: Box<dyn ToEntityTransfomerInterface>,
+    to_entity_transformer: Box<dyn TransformerInterface>,
 ) -> FileChunkUploadService {
     FileChunkUploadService {
         file_upload_repo: pubsub,

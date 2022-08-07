@@ -1,5 +1,5 @@
 use crate::internal::{
-    interfaces::to_entity_transformer::ToEntityTransfomerInterface,
+    interfaces::transformer::TransformerInterface,
     models::view_models::{
         requests::upload_file_chunk_request::UploadFileChunkRequest,
         responses::svc_task_details_repo_responses::ReconTaskResponseDetails,
@@ -12,7 +12,7 @@ use crate::internal::{
     },
 };
 
-use super::to_entity_transfomer::ToEntityTransfomer;
+use super::transformer::Transformer;
 
 #[actix_web::test]
 async fn test_transform_into_file_upload_chunk_returns_correct_model() {
@@ -32,8 +32,8 @@ async fn test_transform_into_file_upload_chunk_returns_correct_model() {
     );
 }
 
-fn setup() -> ToEntityTransfomer {
-    let to_entity_transformer = ToEntityTransfomer {};
+fn setup() -> Transformer {
+    let to_entity_transformer = Transformer {};
     return to_entity_transformer;
 }
 

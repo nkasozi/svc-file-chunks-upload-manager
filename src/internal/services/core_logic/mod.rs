@@ -1,5 +1,5 @@
-pub mod to_entity_transfomer;
+pub mod transformer;
 
 #[cfg(test)]
-#[path = "./to_entity_transfomer_tests.rs"]
-mod to_entity_transfomer_tests;
+#[path = "./transformer_tests.rs"]
+mod transformer_tests;

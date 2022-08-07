@@ -1,7 +1,7 @@
 use uuid::Uuid;
 
 use crate::internal::{
-    interfaces::to_entity_transformer::ToEntityTransfomerInterface,
+    interfaces::transformer::TransformerInterface,
     models::view_models::{
         requests::upload_file_chunk_request::UploadFileChunkRequest,
         responses::svc_task_details_repo_responses::ReconTaskResponseDetails,
@@ -16,9 +16,9 @@ use crate::internal::{
 
 const FILE_CHUNK_PREFIX: &'static str = "FILE-CHUNK";
 
-pub struct ToEntityTransfomer {}
+pub struct Transformer {}
 
-impl ToEntityTransfomerInterface for ToEntityTransfomer {
+impl TransformerInterface for Transformer {
     fn transform_into_file_upload_chunk(
         &self,
         upload_file_chunk_request: UploadFileChunkRequest,
@@ -46,7 +46,7 @@ impl ToEntityTransfomerInterface for ToEntityTransfomer {
     }
 }
 
-impl ToEntityTransfomer {
+impl Transformer {
     fn transform_into_chunk_rows(
         &self,
         upload_file_chunk_request: &mut UploadFileChunkRequest,

@@ -5,8 +5,7 @@ use crate::internal::{
     interfaces::{
         file_chunk_upload_service::FileChunkUploadServiceInterface,
         pubsub_repo::PubSubRepositoryInterface,
-        recon_tasks_repo::ReconTasksDetailsRetrieverInterface,
-        to_entity_transformer::ToEntityTransfomerInterface,
+        recon_tasks_repo::ReconTasksDetailsRetrieverInterface, transformer::TransformerInterface,
     },
     models::view_models::{
         requests::upload_file_chunk_request::UploadFileChunkRequest,
@@ -22,7 +21,7 @@ use crate::internal::shared_reconciler_rust_libraries::models::entities::{
 pub struct FileChunkUploadService {
     pub file_upload_repo: Box<dyn PubSubRepositoryInterface>,
     pub recon_tasks_retriever: Box<dyn ReconTasksDetailsRetrieverInterface>,
-    pub to_entity_transformer: Box<dyn ToEntityTransfomerInterface>,
+    pub to_entity_transformer: Box<dyn TransformerInterface>,
 }
 
 #[async_trait]
