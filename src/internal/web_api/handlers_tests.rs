@@ -39,12 +39,7 @@ async fn test_upload_file_chunk_calls_correct_dependecies_and_returns_success() 
     })())
     .await;
 
-    let request = UploadFileChunkRequest {
-        upload_request_id: String::from("TEST-UPLOAD-1"),
-        chunk_sequence_number: 1,
-        chunk_source: FileUploadChunkSource::ComparisonFileChunk,
-        chunk_rows: vec![],
-    };
+    let request = get_dummy_request();
 
     let resp = TestRequest::post()
         .uri(&format!("/upload-file-chunk"))
@@ -76,12 +71,7 @@ async fn test_upload_file_chunk_when_invalid_request_returns_bad_request() {
     })())
     .await;
 
-    let request = UploadFileChunkRequest {
-        upload_request_id: String::from("TEST-UPLOAD-1"),
-        chunk_sequence_number: 1,
-        chunk_source: FileUploadChunkSource::ComparisonFileChunk,
-        chunk_rows: vec![],
-    };
+    let request = get_dummy_request();
 
     let resp = TestRequest::post()
         .uri(&format!("/upload-file-chunk"))
@@ -112,12 +102,7 @@ async fn test_upload_file_chunk_when_service_returns_error_returns_internal_erro
     })())
     .await;
 
-    let request = UploadFileChunkRequest {
-        upload_request_id: String::from("TEST-UPLOAD-1"),
-        chunk_sequence_number: 1,
-        chunk_source: FileUploadChunkSource::ComparisonFileChunk,
-        chunk_rows: vec![],
-    };
+    let request = get_dummy_request();
 
     let resp = TestRequest::post()
         .uri(&format!("/upload-file-chunk"))
@@ -126,4 +111,13 @@ async fn test_upload_file_chunk_when_service_returns_error_returns_internal_erro
         .await;
 
     assert!(resp.status().is_server_error());
+}
+
+fn get_dummy_request() -> UploadFileChunkRequest {
+    UploadFileChunkRequest {
+        upload_request_id: String::from("TEST-UPLOAD-1"),
+        chunk_sequence_number: 1,
+        chunk_source: FileUploadChunkSource::ComparisonFileChunk,
+        chunk_rows: vec![],
+    }
 }
