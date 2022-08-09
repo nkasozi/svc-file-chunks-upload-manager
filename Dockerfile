@@ -15,8 +15,8 @@ RUN apk add --update --no-cache \
 RUN apk add --no-cache musl-dev
 
 # create a new empty shell project
-RUN USER=root cargo new --bin svc-task-details-repository-manager
-WORKDIR /svc-task-details-repository-manager
+RUN USER=root cargo new --bin svc-file-chunks-upload-manager
+WORKDIR /svc-file-chunks-upload-manager
 
 # copy over your manifests
 COPY ./Cargo.lock ./Cargo.lock
@@ -39,7 +39,7 @@ FROM alpine:3.15
 RUN apk add --no-cache libgcc
 
 # copy the build artifact from the build stage
-COPY --from=build /svc-task-details-repository-manager/target/release/svc-task-details-repository-manager .
+COPY --from=build /svc-file-chunks-upload-manager/target/release/svc-file-chunks-upload-manager .
 
 # set the startup command to run your binary
-CMD ["./svc-task-details-repository-manager"]
+CMD ["./svc-file-chunks-upload-manager"]
