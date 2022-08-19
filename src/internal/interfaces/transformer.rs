@@ -1,11 +1,11 @@
 use mockall::automock;
 
 use crate::internal::{
-    models::view_models::{
-        requests::upload_file_chunk_request::UploadFileChunkRequest,
-        responses::svc_task_details_repo_responses::ReconTaskResponseDetails,
+    models::view_models::requests::upload_file_chunk_request::UploadFileChunkRequest,
+    shared_reconciler_rust_libraries::models::{
+        entities::file_upload_chunk::FileUploadChunk,
+        view_models::recon_task_response_details::ReconTaskResponseDetails,
     },
-    shared_reconciler_rust_libraries::models::entities::file_upload_chunk::FileUploadChunk,
 };
 
 #[automock]

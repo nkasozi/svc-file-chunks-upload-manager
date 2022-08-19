@@ -105,17 +105,18 @@ use crate::internal::{
         },
         transformer::{MockTransformerInterface, TransformerInterface},
     },
-    models::view_models::{
-        requests::upload_file_chunk_request::{FileRow, UploadFileChunkRequest},
-        responses::svc_task_details_repo_responses::ReconTaskResponseDetails,
-    },
-    shared_reconciler_rust_libraries::models::entities::{
-        app_errors::{AppError, AppErrorKind},
-        file_upload_chunk::{FileUploadChunk, FileUploadChunkSource},
-        recon_tasks_models::{
-            ComparisonPair, ReconFileMetaData, ReconFileType, ReconTaskDetails,
-            ReconciliationConfigs,
+    models::view_models::requests::upload_file_chunk_request::{FileRow, UploadFileChunkRequest},
+    shared_reconciler_rust_libraries::models::{
+        entities::{
+            app_errors::{AppError, AppErrorKind},
+            file_chunk_queue::FileChunkQueue,
+            file_upload_chunk::{FileUploadChunk, FileUploadChunkSource},
+            recon_tasks_models::{
+                ComparisonPair, ReconFileMetaData, ReconFileType, ReconTaskDetails,
+                ReconciliationConfigs,
+            },
         },
+        view_models::recon_task_response_details::ReconTaskResponseDetails,
     },
 };
 
@@ -154,6 +155,10 @@ fn dummy_success_recon_task_details() -> ReconTaskResponseDetails {
             recon_file_type: ReconFileType::SourceReconFile,
             column_headers: vec![String::from("header1"), String::from("header2")],
             file_hash: String::from("src-file-1234"),
+            queue_info: FileChunkQueue {
+                queue_id: String::from("src-file-chunks-queue-1"),
+                last_acknowledged_id: Option::None,
+            },
         },
         comparison_file_metadata: ReconFileMetaData {
             id: String::from("cmp-file-1234"),
@@ -163,6 +168,14 @@ fn dummy_success_recon_task_details() -> ReconTaskResponseDetails {
             recon_file_type: ReconFileType::ComparisonReconFile,
             column_headers: vec![String::from("header1"), String::from("header2")],
             file_hash: String::from("cmp-file-1234"),
+            queue_info: FileChunkQueue {
+                queue_id: String::from("cmp-file-chunks-queue-1"),
+                last_acknowledged_id: Option::None,
+            },
+        },
+        results_queue_info: FileChunkQueue {
+            queue_id: String::from("src-file-chunks-queue-1"),
+            last_acknowledged_id: Option::None,
         },
     }
 }
@@ -191,6 +204,18 @@ fn dummy_valid_file_chunk() -> FileUploadChunk {
         comparison_pairs: vec![new_same_column_index_comparison_pair(0)],
         column_headers: vec![],
         recon_config: default_recon_configs(),
+        source_file_chunks_queue: FileChunkQueue {
+            queue_id: String::from("src-file-chunks-queue-1"),
+            last_acknowledged_id: Option::None,
+        },
+        comparison_file_chunks_queue: FileChunkQueue {
+            queue_id: String::from("cmp-file-chunks-queue-1"),
+            last_acknowledged_id: Option::None,
+        },
+        result_chunks_queue: FileChunkQueue {
+            queue_id: String::from("results-file-chunks-queue-1"),
+            last_acknowledged_id: Option::None,
+        },
     }
 }
 

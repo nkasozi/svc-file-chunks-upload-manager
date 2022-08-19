@@ -2,15 +2,15 @@ use uuid::Uuid;
 
 use crate::internal::{
     interfaces::transformer::TransformerInterface,
-    models::view_models::{
-        requests::upload_file_chunk_request::UploadFileChunkRequest,
-        responses::svc_task_details_repo_responses::ReconTaskResponseDetails,
-    },
-    shared_reconciler_rust_libraries::models::entities::{
-        file_upload_chunk::{
-            FileUploadChunk, FileUploadChunkRow, FileUploadChunkSource, ReconStatus,
+    models::view_models::requests::upload_file_chunk_request::UploadFileChunkRequest,
+    shared_reconciler_rust_libraries::models::{
+        entities::{
+            file_upload_chunk::{
+                FileUploadChunk, FileUploadChunkRow, FileUploadChunkSource, ReconStatus,
+            },
+            recon_tasks_models::{ComparisonPair, ReconFileMetaData},
         },
-        recon_tasks_models::{ComparisonPair, ReconFileMetaData},
+        view_models::recon_task_response_details::ReconTaskResponseDetails,
     },
 };
 
@@ -42,6 +42,12 @@ impl TransformerInterface for Transformer {
                 .comparison_file_metadata
                 .column_headers
                 .clone(),
+            source_file_chunks_queue: recon_task_details.source_file_metadata.queue_info.clone(),
+            comparison_file_chunks_queue: recon_task_details
+                .comparison_file_metadata
+                .queue_info
+                .clone(),
+            result_chunks_queue: recon_task_details.results_queue_info.clone(),
         }
     }
 }

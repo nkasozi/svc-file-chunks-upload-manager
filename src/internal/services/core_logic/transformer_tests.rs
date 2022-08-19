@@ -1,14 +1,15 @@
 use crate::internal::{
     interfaces::transformer::TransformerInterface,
-    models::view_models::{
-        requests::upload_file_chunk_request::UploadFileChunkRequest,
-        responses::svc_task_details_repo_responses::ReconTaskResponseDetails,
-    },
-    shared_reconciler_rust_libraries::models::entities::{
-        file_upload_chunk::FileUploadChunkSource,
-        recon_tasks_models::{
-            ReconFileMetaData, ReconFileType, ReconTaskDetails, ReconciliationConfigs,
+    models::view_models::requests::upload_file_chunk_request::UploadFileChunkRequest,
+    shared_reconciler_rust_libraries::models::{
+        entities::{
+            file_chunk_queue::FileChunkQueue,
+            file_upload_chunk::FileUploadChunkSource,
+            recon_tasks_models::{
+                ReconFileMetaData, ReconFileType, ReconTaskDetails, ReconciliationConfigs,
+            },
         },
+        view_models::recon_task_response_details::ReconTaskResponseDetails,
     },
 };
 
@@ -71,6 +72,10 @@ fn get_dummy_recon_task_details() -> ReconTaskResponseDetails {
             recon_file_type: ReconFileType::SourceReconFile,
             column_headers: vec![],
             file_hash: String::from("src-file-1234"),
+            queue_info: FileChunkQueue {
+                queue_id: String::from("src-file-chunks-queue-1"),
+                last_acknowledged_id: Option::None,
+            },
         },
         comparison_file_metadata: ReconFileMetaData {
             id: String::from("cmp-file-1234"),
@@ -80,6 +85,14 @@ fn get_dummy_recon_task_details() -> ReconTaskResponseDetails {
             recon_file_type: ReconFileType::ComparisonReconFile,
             column_headers: vec![],
             file_hash: String::from("cmp-file-1234"),
+            queue_info: FileChunkQueue {
+                queue_id: String::from("cmp-file-chunks-queue-1"),
+                last_acknowledged_id: Option::None,
+            },
+        },
+        results_queue_info: FileChunkQueue {
+            queue_id: String::from("src-file-chunks-queue-1"),
+            last_acknowledged_id: Option::None,
         },
     }
 }

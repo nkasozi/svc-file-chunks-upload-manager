@@ -4,8 +4,10 @@ use tonic::transport::Channel as TonicChannel;
 
 use crate::internal::{
     interfaces::recon_tasks_repo::ReconTasksDetailsRetrieverInterface,
-    models::view_models::responses::svc_task_details_repo_responses::ReconTaskResponseDetails,
-    shared_reconciler_rust_libraries::models::entities::app_errors::{AppError, AppErrorKind},
+    shared_reconciler_rust_libraries::models::{
+        entities::app_errors::{AppError, AppErrorKind},
+        view_models::recon_task_response_details::ReconTaskResponseDetails,
+    },
 };
 
 pub struct ReconTasksDetailsRetriever {
