@@ -35,7 +35,7 @@ impl PubSubRepositoryInterface for DaprPubSubRepositoryManager {
 
         //call the binding
         let pubsub_name = self.dapr_pubsub_name.clone();
-        let pubsub_topic = self.dapr_pubsub_primary_file_topic.clone();
+        let pubsub_topic = file_upload_chunk.primary_file_chunks_queue.topic_id.clone();
         let data_content_type = "json".to_string();
         let data = serde_json::to_vec(&file_upload_chunk).unwrap();
         let metadata = None::<HashMap<String, String>>;
@@ -61,7 +61,10 @@ impl PubSubRepositoryInterface for DaprPubSubRepositoryManager {
 
         //call the binding
         let pubsub_name = self.dapr_pubsub_name.clone();
-        let pubsub_topic = self.dapr_pubsub_comparison_file_topic.clone();
+        let pubsub_topic = file_upload_chunk
+            .comparison_file_chunks_queue
+            .topic_id
+            .clone();
         let data_content_type = "json".to_string();
         let data = serde_json::to_vec(&file_upload_chunk).unwrap();
         let metadata = None::<HashMap<String, String>>;

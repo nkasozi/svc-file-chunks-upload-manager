@@ -42,7 +42,7 @@ impl TransformerInterface for Transformer {
                 .comparison_file_metadata
                 .column_headers
                 .clone(),
-            source_file_chunks_queue: recon_task_details.source_file_metadata.queue_info.clone(),
+            primary_file_chunks_queue: recon_task_details.primary_file_metadata.queue_info.clone(),
             comparison_file_chunks_queue: recon_task_details
                 .comparison_file_metadata
                 .queue_info

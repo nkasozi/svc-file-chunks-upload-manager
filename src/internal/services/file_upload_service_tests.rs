@@ -140,14 +140,14 @@ fn dummy_success_recon_task_details() -> ReconTaskResponseDetails {
         task_id: String::from("task-1234"),
         task_details: ReconTaskDetails {
             id: String::from("task-1234"),
-            source_file_id: String::from("src-file-1234"),
+            primary_file_id: String::from("src-file-1234"),
             comparison_file_id: String::from("cmp-file-1234"),
             is_done: false,
             has_begun: true,
             comparison_pairs: vec![new_same_column_index_comparison_pair(0)],
             recon_config: default_recon_configs(),
         },
-        source_file_metadata: ReconFileMetaData {
+        primary_file_metadata: ReconFileMetaData {
             id: String::from("src-file-1234"),
             file_name: String::from("src-file-1234"),
             row_count: 1000,
@@ -156,7 +156,7 @@ fn dummy_success_recon_task_details() -> ReconTaskResponseDetails {
             column_headers: vec![String::from("header1"), String::from("header2")],
             file_hash: String::from("src-file-1234"),
             queue_info: FileChunkQueue {
-                queue_id: String::from("src-file-chunks-queue-1"),
+                topic_id: String::from("src-file-chunks-queue-1"),
                 last_acknowledged_id: Option::None,
             },
         },
@@ -169,12 +169,12 @@ fn dummy_success_recon_task_details() -> ReconTaskResponseDetails {
             column_headers: vec![String::from("header1"), String::from("header2")],
             file_hash: String::from("cmp-file-1234"),
             queue_info: FileChunkQueue {
-                queue_id: String::from("cmp-file-chunks-queue-1"),
+                topic_id: String::from("cmp-file-chunks-queue-1"),
                 last_acknowledged_id: Option::None,
             },
         },
         results_queue_info: FileChunkQueue {
-            queue_id: String::from("src-file-chunks-queue-1"),
+            topic_id: String::from("src-file-chunks-queue-1"),
             last_acknowledged_id: Option::None,
         },
     }
@@ -204,16 +204,16 @@ fn dummy_valid_file_chunk() -> FileUploadChunk {
         comparison_pairs: vec![new_same_column_index_comparison_pair(0)],
         column_headers: vec![],
         recon_config: default_recon_configs(),
-        source_file_chunks_queue: FileChunkQueue {
-            queue_id: String::from("src-file-chunks-queue-1"),
+        primary_file_chunks_queue: FileChunkQueue {
+            topic_id: String::from("src-file-chunks-queue-1"),
             last_acknowledged_id: Option::None,
         },
         comparison_file_chunks_queue: FileChunkQueue {
-            queue_id: String::from("cmp-file-chunks-queue-1"),
+            topic_id: String::from("cmp-file-chunks-queue-1"),
             last_acknowledged_id: Option::None,
         },
         result_chunks_queue: FileChunkQueue {
-            queue_id: String::from("results-file-chunks-queue-1"),
+            topic_id: String::from("results-file-chunks-queue-1"),
             last_acknowledged_id: Option::None,
         },
     }

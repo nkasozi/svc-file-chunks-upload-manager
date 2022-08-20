@@ -52,7 +52,7 @@ fn get_dummy_recon_task_details() -> ReconTaskResponseDetails {
         task_id: String::from("TEST-UPLOAD-1"),
         task_details: ReconTaskDetails {
             id: String::from("task-1234"),
-            source_file_id: String::from("src-file-1234"),
+            primary_file_id: String::from("src-file-1234"),
             comparison_file_id: String::from("cmp-file-1234"),
             is_done: false,
             has_begun: true,
@@ -64,7 +64,7 @@ fn get_dummy_recon_task_details() -> ReconTaskResponseDetails {
                 should_do_reverse_reconciliation: true,
             },
         },
-        source_file_metadata: ReconFileMetaData {
+        primary_file_metadata: ReconFileMetaData {
             id: String::from("src-file-1234"),
             file_name: String::from("src-file-1234"),
             row_count: 1000,
@@ -73,7 +73,7 @@ fn get_dummy_recon_task_details() -> ReconTaskResponseDetails {
             column_headers: vec![],
             file_hash: String::from("src-file-1234"),
             queue_info: FileChunkQueue {
-                queue_id: String::from("src-file-chunks-queue-1"),
+                topic_id: String::from("src-file-chunks-queue-1"),
                 last_acknowledged_id: Option::None,
             },
         },
@@ -86,12 +86,12 @@ fn get_dummy_recon_task_details() -> ReconTaskResponseDetails {
             column_headers: vec![],
             file_hash: String::from("cmp-file-1234"),
             queue_info: FileChunkQueue {
-                queue_id: String::from("cmp-file-chunks-queue-1"),
+                topic_id: String::from("cmp-file-chunks-queue-1"),
                 last_acknowledged_id: Option::None,
             },
         },
         results_queue_info: FileChunkQueue {
-            queue_id: String::from("src-file-chunks-queue-1"),
+            topic_id: String::from("src-file-chunks-queue-1"),
             last_acknowledged_id: Option::None,
         },
     }
