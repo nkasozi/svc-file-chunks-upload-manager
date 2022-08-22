@@ -146,13 +146,17 @@ fn dummy_success_recon_task_details() -> ReconTaskResponseDetails {
             has_begun: true,
             comparison_pairs: vec![new_same_column_index_comparison_pair(0)],
             recon_config: default_recon_configs(),
+            recon_results_queue_info: FileChunkQueue {
+                topic_id: String::from("recon-results-queue-1"),
+                last_acknowledged_id: Option::None,
+            },
         },
         primary_file_metadata: ReconFileMetaData {
             id: String::from("src-file-1234"),
             file_name: String::from("src-file-1234"),
             row_count: 1000,
             column_delimiters: vec![],
-            recon_file_type: ReconFileType::SourceReconFile,
+            recon_file_type: ReconFileType::PrimaryFile,
             column_headers: vec![String::from("header1"), String::from("header2")],
             file_hash: String::from("src-file-1234"),
             queue_info: FileChunkQueue {
@@ -165,17 +169,13 @@ fn dummy_success_recon_task_details() -> ReconTaskResponseDetails {
             file_name: String::from("cmp-file-1234"),
             row_count: 1000,
             column_delimiters: vec![String::from(",")],
-            recon_file_type: ReconFileType::ComparisonReconFile,
+            recon_file_type: ReconFileType::ComparisonFile,
             column_headers: vec![String::from("header1"), String::from("header2")],
             file_hash: String::from("cmp-file-1234"),
             queue_info: FileChunkQueue {
                 topic_id: String::from("cmp-file-chunks-queue-1"),
                 last_acknowledged_id: Option::None,
             },
-        },
-        results_queue_info: FileChunkQueue {
-            topic_id: String::from("src-file-chunks-queue-1"),
-            last_acknowledged_id: Option::None,
         },
     }
 }
@@ -242,8 +242,8 @@ fn default_recon_configs() -> ReconciliationConfigs {
 
 fn new_same_column_index_comparison_pair(column_index: usize) -> ComparisonPair {
     ComparisonPair {
-        source_column_index: column_index,
-        comparison_column_index: column_index,
+        primary_file_column_index: column_index,
+        comparison_file_column_index: column_index,
         is_row_identifier: true,
     }
 }

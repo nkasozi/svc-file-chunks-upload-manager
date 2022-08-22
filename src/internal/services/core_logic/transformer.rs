@@ -47,7 +47,10 @@ impl TransformerInterface for Transformer {
                 .comparison_file_metadata
                 .queue_info
                 .clone(),
-            result_chunks_queue: recon_task_details.results_queue_info.clone(),
+            result_chunks_queue: recon_task_details
+                .task_details
+                .recon_results_queue_info
+                .clone(),
         }
     }
 }
@@ -107,11 +110,11 @@ fn parse_colum_values_from_row(
     for comparison_pair in comparison_pairs {
         match chunk_source {
             FileUploadChunkSource::ComparisonFileChunk => {
-                if comparison_pair.comparison_column_index > upload_file_columns_in_row.len() {
+                if comparison_pair.comparison_file_column_index > upload_file_columns_in_row.len() {
                     //skip this row because the columns we have parsed are not enough
                     let reason = format!(
                         "cant find a value in column {} of comparison file for this row {}",
-                        comparison_pair.comparison_column_index, row_index
+                        comparison_pair.comparison_file_column_index, row_index
                     );
                     parsed_chunk_row.recon_result = ReconStatus::Failed;
                     parsed_chunk_row.recon_result_reasons.push(reason);
@@ -120,7 +123,7 @@ fn parse_colum_values_from_row(
 
                 //otherwise add new row to those that have been parsed
                 let row_column_value = upload_file_columns_in_row
-                    .get(comparison_pair.comparison_column_index)
+                    .get(comparison_pair.comparison_file_column_index)
                     .unwrap();
 
                 parsed_chunk_row
@@ -131,11 +134,11 @@ fn parse_colum_values_from_row(
             }
 
             FileUploadChunkSource::PrimaryFileChunk => {
-                if comparison_pair.source_column_index > upload_file_columns_in_row.len() {
+                if comparison_pair.primary_file_column_index > upload_file_columns_in_row.len() {
                     //skip this row because the columns we have parsed are not enough
                     let reason = format!(
                         "cant find a value in column {} of source file for this row {}",
-                        comparison_pair.source_column_index, row_index
+                        comparison_pair.primary_file_column_index, row_index
                     );
                     parsed_chunk_row.recon_result = ReconStatus::Failed;
                     parsed_chunk_row.recon_result_reasons.push(reason);
@@ -144,7 +147,7 @@ fn parse_colum_values_from_row(
 
                 //otherwise add new row column value to those that have been parsed
                 let row_column_value = upload_file_columns_in_row
-                    .get(comparison_pair.source_column_index)
+                    .get(comparison_pair.primary_file_column_index)
                     .unwrap();
 
                 parsed_chunk_row
