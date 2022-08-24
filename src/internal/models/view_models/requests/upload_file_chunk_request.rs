@@ -15,6 +15,8 @@ pub struct UploadFileChunkRequest {
 
     #[validate]
     pub chunk_rows: Vec<FileRow>,
+
+    pub is_last_chunk: bool,
 }
 
 #[derive(Serialize, Deserialize, Clone, Validate, Debug)]

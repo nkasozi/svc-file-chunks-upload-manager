@@ -44,6 +44,7 @@ fn get_dummy_upload_file_chunk_request() -> UploadFileChunkRequest {
         chunk_sequence_number: 1,
         chunk_source: FileUploadChunkSource::ComparisonFileChunk,
         chunk_rows: vec![],
+        is_last_chunk: false,
     }
 }
 

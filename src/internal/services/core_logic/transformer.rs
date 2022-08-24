@@ -51,6 +51,7 @@ impl TransformerInterface for Transformer {
                 .task_details
                 .recon_results_queue_info
                 .clone(),
+            is_last_chunk: upload_file_chunk_request.is_last_chunk.clone(),
         }
     }
 }

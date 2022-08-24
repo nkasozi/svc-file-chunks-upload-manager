@@ -189,6 +189,7 @@ fn dummy_valid_test_request() -> UploadFileChunkRequest {
             raw_data: String::from("testing, 1234"),
             row_number: 1,
         }],
+        is_last_chunk: false,
     }
 }
 
@@ -216,6 +217,7 @@ fn dummy_valid_file_chunk() -> FileUploadChunk {
             topic_id: String::from("results-file-chunks-queue-1"),
             last_acknowledged_id: Option::None,
         },
+        is_last_chunk: false,
     }
 }
 
