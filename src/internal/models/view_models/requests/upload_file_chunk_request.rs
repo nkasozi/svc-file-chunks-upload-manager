@@ -1,7 +1,9 @@
 use serde::{Deserialize, Serialize};
 use validator::Validate;
 
-use crate::internal::shared_reconciler_rust_libraries::models::entities::file_upload_chunk::FileUploadChunkSource;
+use crate::internal::shared_reconciler_rust_libraries::models::entities::{
+    file_row::FileRow, file_upload_chunk::FileUploadChunkSource,
+};
 
 #[derive(Serialize, Deserialize, Clone, Validate, Debug)]
 pub struct UploadFileChunkRequest {
@@ -17,11 +19,4 @@ pub struct UploadFileChunkRequest {
     pub chunk_rows: Vec<FileRow>,
 
     pub is_last_chunk: bool,
-}
-
-#[derive(Serialize, Deserialize, Clone, Validate, Debug)]
-pub struct FileRow {
-    #[validate(length(min = 1, message = "please data in the file row"))]
-    pub raw_data: String,
-    pub row_number: u64,
 }

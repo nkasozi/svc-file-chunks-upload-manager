@@ -105,11 +105,12 @@ use crate::internal::{
         },
         transformer::{MockTransformerInterface, TransformerInterface},
     },
-    models::view_models::requests::upload_file_chunk_request::{FileRow, UploadFileChunkRequest},
+    models::view_models::requests::upload_file_chunk_request::UploadFileChunkRequest,
     shared_reconciler_rust_libraries::models::{
         entities::{
             app_errors::{AppError, AppErrorKind},
             file_chunk_queue::FileChunkQueue,
+            file_row::FileRow,
             file_upload_chunk::{FileUploadChunk, FileUploadChunkSource},
             recon_tasks_models::{
                 ComparisonPair, ReconFileMetaData, ReconFileType, ReconTaskDetails,
