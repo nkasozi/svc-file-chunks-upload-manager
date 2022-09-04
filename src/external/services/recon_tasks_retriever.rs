@@ -28,7 +28,7 @@ impl ReconTasksDetailsRetrieverInterface for ReconTasksDetailsRetriever {
         let mut client = self.get_dapr_connection().await?;
 
         //call the binding
-        let url = format!("/recon-task/{}", task_id.clone());
+        let url = format!("/recon-tasks/{}", task_id.clone());
         let binding_response = client
             .invoke_service(self.recon_tasks_service_name.clone(), url, Option::None)
             .await;

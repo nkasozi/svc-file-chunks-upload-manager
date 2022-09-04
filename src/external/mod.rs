@@ -1,2 +1,2 @@
 pub mod pubsub;
-pub mod repositories;
+pub mod services;

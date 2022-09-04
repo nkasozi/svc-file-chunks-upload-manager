@@ -10,7 +10,7 @@ use dapr::{dapr::dapr::proto::runtime::v1::dapr_client::DaprClient, Client};
 use std::collections::HashMap;
 use tonic::transport::Channel as TonicChannel;
 
-pub struct DaprPubSubRepositoryManager {
+pub struct DaprPubSub {
     //the dapr server ip
     pub dapr_grpc_server_address: String,
 
@@ -25,7 +25,7 @@ pub struct DaprPubSubRepositoryManager {
 }
 
 #[async_trait]
-impl PubSubRepositoryInterface for DaprPubSubRepositoryManager {
+impl PubSubRepositoryInterface for DaprPubSub {
     async fn save_file_upload_chunk_to_primary_file_queue(
         &self,
         file_upload_chunk: &FileUploadChunk,
@@ -82,7 +82,7 @@ impl PubSubRepositoryInterface for DaprPubSubRepositoryManager {
     }
 }
 
-impl DaprPubSubRepositoryManager {
+impl DaprPubSub {
     async fn get_dapr_connection(&self) -> Result<Client<DaprClient<TonicChannel>>, AppError> {
         // Create the client
         let dapr_grpc_server_address = self.dapr_grpc_server_address.clone();

@@ -1,7 +1,7 @@
 use crate::{
     external::{
-        pubsub::dapr_pubsub::DaprPubSubRepositoryManager,
-        repositories::recon_tasks_retriever::ReconTasksDetailsRetriever,
+        pubsub::dapr_pubsub::DaprPubSub,
+        services::recon_tasks_retriever::ReconTasksDetailsRetriever,
     },
     internal::{
         interfaces::file_chunk_upload_service::FileChunkUploadServiceInterface,
@@ -63,7 +63,7 @@ pub async fn run_async() -> Result<(), std::io::Error> {
 
 fn setup_service(app_settings: AppSettings) -> Box<dyn FileChunkUploadServiceInterface> {
     let service: Box<dyn FileChunkUploadServiceInterface> = Box::new(FileChunkUploadService {
-        file_upload_repo: Box::new(DaprPubSubRepositoryManager {
+        file_upload_repo: Box::new(DaprPubSub {
             dapr_grpc_server_address: app_settings.dapr_grpc_server_address.clone(),
             dapr_pubsub_name: app_settings.dapr_pubsub_name.clone(),
             dapr_pubsub_comparison_file_topic: app_settings
