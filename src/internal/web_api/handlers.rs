@@ -1,7 +1,7 @@
 use actix_web::{
+    HttpResponse,
     post,
     web::{self, Data},
-    HttpResponse,
 };
 
 use crate::internal::{
@@ -11,7 +11,7 @@ use crate::internal::{
 };
 
 #[post("/upload-file-chunk")]
-async fn upload_file_chunk(
+pub(crate) async fn upload_file_chunk(
     task_details: web::Json<UploadFileChunkRequest>,
     service: Data<Box<dyn FileChunkUploadServiceInterface>>,
 ) -> HttpResponse {

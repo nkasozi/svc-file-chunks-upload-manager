@@ -6,7 +6,7 @@ use crate::internal::{
             file_chunk_queue::FileChunkQueue,
             file_upload_chunk::FileUploadChunkSource,
             recon_tasks_models::{
-                ReconFileMetaData, ReconFileType, ReconTaskDetails, ReconciliationConfigs,
+                ReconciliationConfigs, ReconFileMetaData, ReconFileType, ReconTaskDetails,
             },
         },
         view_models::recon_task_response_details::ReconTaskResponseDetails,
@@ -28,7 +28,7 @@ async fn test_transform_into_file_upload_chunk_returns_correct_model() {
     );
 
     assert_eq!(
-        actual.chunk_sequence_number,
+        actual.unwrap().chunk_sequence_number,
         upload_file_chunk_request.chunk_sequence_number
     );
 }
@@ -53,8 +53,8 @@ fn get_dummy_recon_task_details() -> ReconTaskResponseDetails {
         task_id: String::from("TEST-UPLOAD-1"),
         task_details: ReconTaskDetails {
             id: String::from("task-1234"),
-            primary_file_id: String::from("src-file-1234"),
-            comparison_file_id: String::from("cmp-file-1234"),
+            primary_file_id: Some(String::from("src-file-1234")),
+            comparison_file_id: Some(String::from("cmp-file-1234")),
             is_done: false,
             has_begun: true,
             comparison_pairs: vec![],
@@ -69,7 +69,7 @@ fn get_dummy_recon_task_details() -> ReconTaskResponseDetails {
                 last_acknowledged_id: Option::None,
             },
         },
-        primary_file_metadata: ReconFileMetaData {
+        primary_file_metadata: Some(ReconFileMetaData {
             id: String::from("src-file-1234"),
             file_name: String::from("src-file-1234"),
             row_count: 1000,
@@ -81,8 +81,8 @@ fn get_dummy_recon_task_details() -> ReconTaskResponseDetails {
                 topic_id: String::from("src-file-chunks-queue-1"),
                 last_acknowledged_id: Option::None,
             },
-        },
-        comparison_file_metadata: ReconFileMetaData {
+        }),
+        comparison_file_metadata: Some(ReconFileMetaData {
             id: String::from("cmp-file-1234"),
             file_name: String::from("cmp-file-1234"),
             row_count: 1000,
@@ -94,6 +94,6 @@ fn get_dummy_recon_task_details() -> ReconTaskResponseDetails {
                 topic_id: String::from("cmp-file-chunks-queue-1"),
                 last_acknowledged_id: Option::None,
             },
-        },
+        }),
     }
 }

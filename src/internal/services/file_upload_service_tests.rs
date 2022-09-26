@@ -1,3 +1,28 @@
+use crate::internal::{
+    interfaces::{
+        file_chunk_upload_service::FileChunkUploadServiceInterface,
+        pubsub_repo::{MockPubSubRepositoryInterface, PubSubRepositoryInterface},
+        recon_tasks_repo::{
+            MockReconTasksDetailsRetrieverInterface, ReconTasksDetailsRetrieverInterface,
+        },
+        transformer::{MockTransformerInterface, TransformerInterface},
+    },
+    models::view_models::requests::upload_file_chunk_request::UploadFileChunkRequest,
+    shared_reconciler_rust_libraries::models::{
+        entities::{
+            app_errors::{AppError, AppErrorKind},
+            file_chunk_queue::FileChunkQueue,
+            file_row::FileRow,
+            file_upload_chunk::{FileUploadChunk, FileUploadChunkSource},
+            recon_tasks_models::{
+                ComparisonPair, ReconciliationConfigs, ReconFileMetaData, ReconFileType,
+                ReconTaskDetails,
+            },
+        },
+        view_models::recon_task_response_details::ReconTaskResponseDetails,
+    },
+};
+
 use super::file_upload_service::FileChunkUploadService;
 
 #[actix_rt::test]
@@ -15,7 +40,7 @@ async fn given_valid_request_calls_correct_dependencie_and_returns_success() {
 
     mock_to_entity_transformer
         .expect_transform_into_file_upload_chunk()
-        .returning(|_, _| dummy_valid_file_chunk());
+        .returning(|_, _| Ok(dummy_valid_file_chunk()));
 
     let sut = setup_service_under_test(
         mock_file_upload_repo,
@@ -45,7 +70,7 @@ async fn given_invalid_request_returns_error() {
 
     mock_to_entity_transformer
         .expect_transform_into_file_upload_chunk()
-        .returning(|_, _| dummy_valid_file_chunk());
+        .returning(|_, _| Ok(dummy_valid_file_chunk()));
 
     let sut = setup_service_under_test(
         mock_file_upload_repo,
@@ -81,7 +106,7 @@ async fn given_valid_request_but_repo_returns_error_returns_error() {
 
     mock_to_entity_transformer
         .expect_transform_into_file_upload_chunk()
-        .returning(|_, _| dummy_valid_file_chunk());
+        .returning(|_, _| Ok(dummy_valid_file_chunk()));
 
     let sut = setup_service_under_test(
         mock_file_upload_repo,
@@ -95,31 +120,6 @@ async fn given_valid_request_but_repo_returns_error_returns_error() {
 
     assert!(actual.is_err());
 }
-
-use crate::internal::{
-    interfaces::{
-        file_chunk_upload_service::FileChunkUploadServiceInterface,
-        pubsub_repo::{MockPubSubRepositoryInterface, PubSubRepositoryInterface},
-        recon_tasks_repo::{
-            MockReconTasksDetailsRetrieverInterface, ReconTasksDetailsRetrieverInterface,
-        },
-        transformer::{MockTransformerInterface, TransformerInterface},
-    },
-    models::view_models::requests::upload_file_chunk_request::UploadFileChunkRequest,
-    shared_reconciler_rust_libraries::models::{
-        entities::{
-            app_errors::{AppError, AppErrorKind},
-            file_chunk_queue::FileChunkQueue,
-            file_row::FileRow,
-            file_upload_chunk::{FileUploadChunk, FileUploadChunkSource},
-            recon_tasks_models::{
-                ComparisonPair, ReconFileMetaData, ReconFileType, ReconTaskDetails,
-                ReconciliationConfigs,
-            },
-        },
-        view_models::recon_task_response_details::ReconTaskResponseDetails,
-    },
-};
 
 fn setup_dependencies() -> (
     Box<MockPubSubRepositoryInterface>,
@@ -141,8 +141,8 @@ fn dummy_success_recon_task_details() -> ReconTaskResponseDetails {
         task_id: String::from("task-1234"),
         task_details: ReconTaskDetails {
             id: String::from("task-1234"),
-            primary_file_id: String::from("src-file-1234"),
-            comparison_file_id: String::from("cmp-file-1234"),
+            primary_file_id: Some(String::from("src-file-1234")),
+            comparison_file_id: Some(String::from("cmp-file-1234")),
             is_done: false,
             has_begun: true,
             comparison_pairs: vec![new_same_column_index_comparison_pair(0)],
@@ -152,7 +152,7 @@ fn dummy_success_recon_task_details() -> ReconTaskResponseDetails {
                 last_acknowledged_id: Option::None,
             },
         },
-        primary_file_metadata: ReconFileMetaData {
+        primary_file_metadata: Some(ReconFileMetaData {
             id: String::from("src-file-1234"),
             file_name: String::from("src-file-1234"),
             row_count: 1000,
@@ -164,12 +164,12 @@ fn dummy_success_recon_task_details() -> ReconTaskResponseDetails {
                 topic_id: String::from("src-file-chunks-queue-1"),
                 last_acknowledged_id: Option::None,
             },
-        },
-        comparison_file_metadata: ReconFileMetaData {
+        }),
+        comparison_file_metadata: Some(ReconFileMetaData {
             id: String::from("cmp-file-1234"),
             file_name: String::from("cmp-file-1234"),
             row_count: 1000,
-            column_delimiters: vec![String::from(",")],
+            column_delimiters: vec![','],
             recon_file_type: ReconFileType::ComparisonFile,
             column_headers: vec![String::from("header1"), String::from("header2")],
             file_hash: String::from("cmp-file-1234"),
@@ -177,7 +177,7 @@ fn dummy_success_recon_task_details() -> ReconTaskResponseDetails {
                 topic_id: String::from("cmp-file-chunks-queue-1"),
                 last_acknowledged_id: Option::None,
             },
-        },
+        }),
     }
 }
 

@@ -7,6 +7,7 @@ use crate::internal::{
         view_models::recon_task_response_details::ReconTaskResponseDetails,
     },
 };
+use crate::internal::shared_reconciler_rust_libraries::models::entities::app_errors::AppError;
 
 #[automock]
 pub trait TransformerInterface: Send + Sync {
@@ -14,5 +15,5 @@ pub trait TransformerInterface: Send + Sync {
         &self,
         upload_file_chunk_request: UploadFileChunkRequest,
         recon_task_details: ReconTaskResponseDetails,
-    ) -> FileUploadChunk;
+    ) -> Result<FileUploadChunk, AppError>;
 }

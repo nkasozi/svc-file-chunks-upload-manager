@@ -12,7 +12,6 @@ use crate::internal::{
         responses::upload_file_chunk_response::UploadFileChunkResponse,
     },
 };
-
 use crate::internal::shared_reconciler_rust_libraries::models::entities::{
     app_errors::{AppError, AppErrorKind},
     file_upload_chunk::FileUploadChunkSource,
@@ -32,7 +31,7 @@ impl FileChunkUploadServiceInterface for FileChunkUploadService {
     # Errors
 
     This function will return an error if the request fails validation or fails to be uploaded.
-    */
+     */
     async fn upload_file_chunk(
         &self,
         upload_file_chunk_request: UploadFileChunkRequest,
@@ -57,7 +56,7 @@ impl FileChunkUploadServiceInterface for FileChunkUploadService {
         //transform into the repo model
         let file_upload_chunk = self
             .to_entity_transformer
-            .transform_into_file_upload_chunk(upload_file_chunk_request, recon_task_details);
+            .transform_into_file_upload_chunk(upload_file_chunk_request, recon_task_details)?;
 
         let file_save_result;
 

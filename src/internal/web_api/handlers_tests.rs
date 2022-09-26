@@ -1,7 +1,7 @@
 use actix_web::{
+    App,
     test::{self, TestRequest},
     web::Data,
-    App,
 };
 
 use crate::internal::{
@@ -20,7 +20,7 @@ use crate::internal::{
 };
 
 #[actix_web::test]
-async fn test_upload_file_chunk_calls_correct_dependecies_and_returns_success() {
+async fn test_upload_file_chunk_calls_correct_dependencies_and_returns_success() {
     let mut app = test::init_service((move || {
         // Create some global state prior to running the handler thread
         let mut mock_service = Box::new(MockFileChunkUploadServiceInterface::new());
@@ -37,7 +37,7 @@ async fn test_upload_file_chunk_calls_correct_dependecies_and_returns_success() 
             .app_data(Data::new(service)) // add shared state
             .service(upload_file_chunk)
     })())
-    .await;
+        .await;
 
     let request = get_dummy_request();
 
@@ -69,7 +69,7 @@ async fn test_upload_file_chunk_when_invalid_request_returns_bad_request() {
             .app_data(Data::new(service)) // add shared state
             .service(upload_file_chunk)
     })())
-    .await;
+        .await;
 
     let request = get_dummy_request();
 
@@ -100,7 +100,7 @@ async fn test_upload_file_chunk_when_service_returns_error_returns_internal_erro
             .app_data(Data::new(service)) // add shared state
             .service(upload_file_chunk)
     })())
-    .await;
+        .await;
 
     let request = get_dummy_request();
 
