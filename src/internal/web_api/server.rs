@@ -1,7 +1,9 @@
+use actix_web::{App, HttpServer, web::Data};
+
 use crate::{
     external::{
+        connectors::recon_tasks_retriever::ReconTasksServiceConnector,
         pubsub::dapr_pubsub::DaprPubSub,
-        services::recon_tasks_retriever::ReconTasksDetailsRetriever,
     },
     internal::{
         interfaces::file_chunk_upload_service::FileChunkUploadServiceInterface,
@@ -11,7 +13,8 @@ use crate::{
         web_api::handlers,
     },
 };
-use actix_web::{web::Data, App, HttpServer};
+use crate::internal::shared_reconciler_rust_libraries::sdks::internal_microservices::interfaces::recon_tasks_microservice::ReconTasksMicroserviceClientInterface;
+use crate::internal::shared_reconciler_rust_libraries::sdks::internal_microservices::recon_tasks_microservice::ReconTasksMicroserviceClient;
 
 // constants
 const DEFAULT_DAPR_CONNECTION_URL: &'static str = "http://localhost:5005";
@@ -19,7 +22,8 @@ const DEFAULT_DAPR_PUBSUB_NAME: &'static str = "FileChunksQueue";
 const DEFAULT_DAPR_PRIMARY_FILE_PUBSUB_TOPIC: &'static str = "PrimaryFileQueue";
 const DEFAULT_DAPR_COMPARISON_FILE_PUBSUB_TOPIC: &'static str = "ComparisonFileQueue";
 const DEFAULT_APP_LISTEN_IP: &'static str = "0.0.0.0";
-const DEFAULT_APP_LISTEN_PORT: u16 = 8080;
+const DEFAULT_APP_LISTEN_PORT: u16 = 8084;
+const DEFAULT_RECON_TASKS_CONNECTION_URL: &'static str = "http://localhost:3500";
 
 #[derive(Clone, Debug)]
 struct AppSettings {
@@ -36,6 +40,8 @@ struct AppSettings {
     pub dapr_grpc_server_address: String,
 
     pub recon_tasks_service_name: String,
+
+    pub recon_tasks_connection_url: String,
 }
 
 pub async fn run_async() -> Result<(), std::io::Error> {
@@ -56,12 +62,16 @@ pub async fn run_async() -> Result<(), std::io::Error> {
             .app_data(Data::new(service))
             .service(handlers::upload_file_chunk)
     })
-    .bind(app_listen_url)?
-    .run()
-    .await
+        .bind(app_listen_url)?
+        .run()
+        .await
 }
 
 fn setup_service(app_settings: AppSettings) -> Box<dyn FileChunkUploadServiceInterface> {
+    let recon_tasks_ms_client: Box<dyn ReconTasksMicroserviceClientInterface> = Box::new(ReconTasksMicroserviceClient {
+        host: app_settings.recon_tasks_connection_url.clone(),
+        recon_tasks_service_app_id: app_settings.recon_tasks_service_name.clone(),
+    });
     let service: Box<dyn FileChunkUploadServiceInterface> = Box::new(FileChunkUploadService {
         file_upload_repo: Box::new(DaprPubSub {
             dapr_grpc_server_address: app_settings.dapr_grpc_server_address.clone(),
@@ -72,11 +82,7 @@ fn setup_service(app_settings: AppSettings) -> Box<dyn FileChunkUploadServiceInt
             dapr_pubsub_primary_file_topic: app_settings.dapr_pubsub_primary_file_topic.clone(),
         }),
 
-        recon_tasks_retriever: Box::new(ReconTasksDetailsRetriever {
-            dapr_grpc_server_address: app_settings.dapr_grpc_server_address.clone(),
-            recon_tasks_service_name: app_settings.recon_tasks_service_name.clone(),
-        }),
-
+        recon_tasks_retriever: Box::new(ReconTasksServiceConnector::new(recon_tasks_ms_client)),
         to_entity_transformer: Box::new(Transformer {}),
     });
     service
@@ -102,5 +108,8 @@ fn read_app_settings() -> AppSettings {
 
         recon_tasks_service_name: std::env::var("RECON_TASKS_SERVICE_NAME")
             .unwrap_or(DEFAULT_DAPR_CONNECTION_URL.to_string()),
+
+        recon_tasks_connection_url: std::env::var("RECON_TASKS_SERVICE_HOST")
+            .unwrap_or(DEFAULT_RECON_TASKS_CONNECTION_URL.to_string()),
     }
 }

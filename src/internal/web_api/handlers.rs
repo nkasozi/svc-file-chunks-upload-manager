@@ -7,8 +7,8 @@ use actix_web::{
 use crate::internal::{
     interfaces::file_chunk_upload_service::FileChunkUploadServiceInterface,
     models::view_models::requests::upload_file_chunk_request::UploadFileChunkRequest,
-    shared_reconciler_rust_libraries::models::entities::app_errors::AppErrorKind,
 };
+use crate::internal::shared_reconciler_rust_libraries::web_api::utils::ok_or_error;
 
 #[post("/upload-file-chunk")]
 pub(crate) async fn upload_file_chunk(
@@ -17,12 +17,5 @@ pub(crate) async fn upload_file_chunk(
 ) -> HttpResponse {
     let recon_task_details = service.upload_file_chunk(task_details.0).await;
 
-    return match recon_task_details {
-        Ok(details) => HttpResponse::Ok().json(details),
-
-        Err(err) => match err.kind {
-            AppErrorKind::BadClientRequest => HttpResponse::BadRequest().json(format!("{}", err)),
-            _ => HttpResponse::InternalServerError().json(format!("{}", err)),
-        },
-    };
+    return ok_or_error(recon_task_details);
 }
