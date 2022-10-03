@@ -15,7 +15,6 @@ use crate::internal::{
 };
 use crate::internal::shared_reconciler_rust_libraries::common::utils::app_error_with_msg;
 use crate::internal::shared_reconciler_rust_libraries::models::entities::app_errors::{AppError, AppErrorKind};
-use crate::internal::shared_reconciler_rust_libraries::models::entities::file_chunk_queue::FileChunkQueue;
 
 const FILE_CHUNK_PREFIX: &'static str = "FILE-CHUNK";
 
@@ -27,6 +26,23 @@ impl TransformerInterface for Transformer {
         upload_file_chunk_request: UploadFileChunkRequest,
         recon_task_details: ReconTaskResponseDetails,
     ) -> Result<FileUploadChunk, AppError> {
+        let optional_file_metadata = match upload_file_chunk_request.chunk_source {
+            FileUploadChunkSource::ComparisonFileChunk => {
+                recon_task_details.comparison_file_metadata.clone()
+            }
+            FileUploadChunkSource::PrimaryFileChunk => {
+                recon_task_details.primary_file_metadata.clone()
+            }
+        };
+
+        let mut file_metadata = match optional_file_metadata {
+            None => {
+                let error_msg = format!("no file_metadata found for recon task [{}]", upload_file_chunk_request.upload_request_id.clone());
+                return app_error_with_msg(AppErrorKind::InternalError, &error_msg);
+            }
+            Some(metadata) => metadata
+        };
+
         Ok(FileUploadChunk {
             id: self.generate_uuid(FILE_CHUNK_PREFIX),
             upload_request_id: upload_file_chunk_request.upload_request_id.clone(),
@@ -34,16 +50,16 @@ impl TransformerInterface for Transformer {
             chunk_source: upload_file_chunk_request.chunk_source.clone(),
             chunk_rows: self.transform_into_chunk_rows(
                 &mut upload_file_chunk_request.clone(),
-                &mut recon_task_details.comparison_file_metadata.clone(),
+                &mut file_metadata,
                 recon_task_details.task_details.comparison_pairs.clone(),
-            ),
+            )?,
             date_created: chrono::Utc::now().timestamp(),
             date_modified: chrono::Utc::now().timestamp(),
             comparison_pairs: recon_task_details.task_details.comparison_pairs.clone(),
             recon_config: recon_task_details.task_details.recon_config.clone(),
             column_headers: Self::get_column_headers(upload_file_chunk_request.clone(), recon_task_details.clone()),
-            primary_file_chunks_queue: Self::get_queue_info(&recon_task_details.primary_file_metadata.clone())?,
-            comparison_file_chunks_queue: Self::get_queue_info(&recon_task_details.comparison_file_metadata.clone())?,
+            primary_file_chunks_queue: recon_task_details.task_details.primary_file_chunks_queue_info.clone(),
+            comparison_file_chunks_queue: recon_task_details.task_details.comparison_file_chunks_queue_info.clone(),
             result_chunks_queue: recon_task_details
                 .task_details
                 .recon_results_queue_info
@@ -57,9 +73,9 @@ impl Transformer {
     fn transform_into_chunk_rows(
         &self,
         upload_file_chunk_request: &mut UploadFileChunkRequest,
-        recon_file_meta_data: &mut Option<ReconFileMetaData>,
+        recon_file_meta_data: &mut ReconFileMetaData,
         comparison_pairs: Vec<ComparisonPair>,
-    ) -> Vec<FileUploadChunkRow> {
+    ) -> Result<Vec<FileUploadChunkRow>, AppError> {
         let mut parsed_chunk_rows: Vec<FileUploadChunkRow> = vec![];
 
         for row_in_upload_file_chunk in &mut upload_file_chunk_request.chunk_rows {
@@ -74,30 +90,18 @@ impl Transformer {
                 row_in_upload_file_chunk.raw_data.clone(),
                 row_in_upload_file_chunk.row_number,
                 comparison_pairs.clone(),
-            );
+            )?;
 
             parsed_chunk_rows.push(parsed_chunk_row);
         }
 
-        return parsed_chunk_rows;
+        return Ok(parsed_chunk_rows);
     }
 
     fn generate_uuid(&self, prefix: &str) -> String {
         let id = Uuid::new_v4().to_string();
         let full_id = String::from(format!("{}-{}", prefix, id));
         return full_id;
-    }
-
-    fn get_queue_info(file_metadata: &Option<ReconFileMetaData>) -> Result<FileChunkQueue, AppError> {
-        return match file_metadata {
-            None => {
-                app_error_with_msg(AppErrorKind::InternalError, "no queue info found")
-            }
-            Some(metadata) => {
-                Ok(metadata.queue_info
-                    .clone())
-            }
-        };
     }
 
     fn get_column_headers(upload_file_chunk_request: UploadFileChunkRequest,
@@ -131,7 +135,7 @@ fn parse_colum_values_from_row(
     upload_file_row: String,
     row_index: u64,
     comparison_pairs: Vec<ComparisonPair>,
-) -> FileUploadChunkRow {
+) -> Result<FileUploadChunkRow, AppError> {
     //set up the parsed row in a pending state
     let mut parsed_chunk_row = FileUploadChunkRow {
         raw_data: upload_file_row.to_string(),
@@ -156,9 +160,15 @@ fn parse_colum_values_from_row(
                 }
 
                 //otherwise add new row to those that have been parsed
-                let row_column_value = upload_file_columns_in_row
-                    .get(comparison_pair.comparison_file_column_index)
-                    .unwrap();
+                let row_column_value = match upload_file_columns_in_row
+                    .get(comparison_pair.comparison_file_column_index) {
+                    None => {
+                        let error_msg = format!("ParseError: unable to get row value from comparison pair comparison_file_column_index:{}", comparison_pair.primary_file_column_index.clone());
+                        return app_error_with_msg::<FileUploadChunkRow>(AppErrorKind::InternalError, &error_msg);
+                    }
+                    Some(value) => value
+                };
+
 
                 parsed_chunk_row
                     .parsed_columns_from_row
@@ -180,9 +190,14 @@ fn parse_colum_values_from_row(
                 }
 
                 //otherwise add new row column value to those that have been parsed
-                let row_column_value = upload_file_columns_in_row
-                    .get(comparison_pair.primary_file_column_index)
-                    .unwrap();
+                let row_column_value = match upload_file_columns_in_row
+                    .get(comparison_pair.primary_file_column_index) {
+                    None => {
+                        let error_msg = format!("ParseError: unable to get row value from comparison pair primary_file_column_index:{}", comparison_pair.primary_file_column_index.clone());
+                        return app_error_with_msg::<FileUploadChunkRow>(AppErrorKind::InternalError, &error_msg);
+                    }
+                    Some(value) => value
+                };
 
                 parsed_chunk_row
                     .parsed_columns_from_row
@@ -193,24 +208,21 @@ fn parse_colum_values_from_row(
         }
     }
 
-    return parsed_chunk_row;
+    return Ok(parsed_chunk_row);
 }
 
 fn break_up_file_row_using_delimiters(
-    recon_file_meta_data: &mut Option<ReconFileMetaData>,
+    recon_file_meta_data: &mut ReconFileMetaData,
     upload_file_row: &mut String,
 ) -> Vec<String> {
     let mut upload_file_columns_in_row: Vec<String> = vec![];
-    match recon_file_meta_data {
-        None => {}
-        Some(metadata) => {
-            let row_parts: Vec<String> = upload_file_row
-                .split(&metadata.column_delimiters.clone()[..])
-                .map(str::to_owned)
-                .collect();
+    for column_delimiter in recon_file_meta_data.column_delimiters.clone() {
+        let row_parts: Vec<String> = upload_file_row
+            .split(column_delimiter)
+            .map(str::to_owned)
+            .collect();
 
-            upload_file_columns_in_row.extend(row_parts);
-        }
+        upload_file_columns_in_row.extend(row_parts);
     }
 
     upload_file_columns_in_row

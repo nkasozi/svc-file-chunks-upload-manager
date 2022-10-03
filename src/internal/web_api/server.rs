@@ -2,7 +2,7 @@ use actix_web::{App, HttpServer, web::Data};
 
 use crate::{
     external::{
-        connectors::recon_tasks_retriever::ReconTasksServiceConnector,
+        connectors::recon_tasks_service_connector::ReconTasksServiceConnector,
         pubsub::dapr_pubsub::DaprPubSub,
     },
     internal::{
@@ -17,13 +17,12 @@ use crate::internal::shared_reconciler_rust_libraries::sdks::internal_microservi
 use crate::internal::shared_reconciler_rust_libraries::sdks::internal_microservices::recon_tasks_microservice::ReconTasksMicroserviceClient;
 
 // constants
-const DEFAULT_DAPR_CONNECTION_URL: &'static str = "http://localhost:5005";
-const DEFAULT_DAPR_PUBSUB_NAME: &'static str = "FileChunksQueue";
-const DEFAULT_DAPR_PRIMARY_FILE_PUBSUB_TOPIC: &'static str = "PrimaryFileQueue";
-const DEFAULT_DAPR_COMPARISON_FILE_PUBSUB_TOPIC: &'static str = "ComparisonFileQueue";
+const DEFAULT_DAPR_CONNECTION_URL: &'static str = "http://localhost:5006";
+const DEFAULT_DAPR_PUBSUB_NAME: &'static str = "pubsub";
 const DEFAULT_APP_LISTEN_IP: &'static str = "0.0.0.0";
 const DEFAULT_APP_LISTEN_PORT: u16 = 8084;
-const DEFAULT_RECON_TASKS_CONNECTION_URL: &'static str = "http://localhost:3500";
+const DEFAULT_RECON_TASKS_CONNECTION_URL: &'static str = "http://localhost:3600";
+const DEFAULT_RECON_TASKS_SERVICE_ID: &'static str = "svc-task-details-repository-manager";
 
 #[derive(Clone, Debug)]
 struct AppSettings {
@@ -33,11 +32,7 @@ struct AppSettings {
 
     pub dapr_pubsub_name: String,
 
-    pub dapr_pubsub_comparison_file_topic: String,
-
-    pub dapr_pubsub_primary_file_topic: String,
-
-    pub dapr_grpc_server_address: String,
+    pub dapr_pubsub_server_address: String,
 
     pub recon_tasks_service_name: String,
 
@@ -74,12 +69,8 @@ fn setup_service(app_settings: AppSettings) -> Box<dyn FileChunkUploadServiceInt
     });
     let service: Box<dyn FileChunkUploadServiceInterface> = Box::new(FileChunkUploadService {
         file_upload_repo: Box::new(DaprPubSub {
-            dapr_grpc_server_address: app_settings.dapr_grpc_server_address.clone(),
+            dapr_grpc_server_address: app_settings.dapr_pubsub_server_address.clone(),
             dapr_pubsub_name: app_settings.dapr_pubsub_name.clone(),
-            dapr_pubsub_comparison_file_topic: app_settings
-                .dapr_pubsub_comparison_file_topic
-                .clone(),
-            dapr_pubsub_primary_file_topic: app_settings.dapr_pubsub_primary_file_topic.clone(),
         }),
 
         recon_tasks_retriever: Box::new(ReconTasksServiceConnector::new(recon_tasks_ms_client)),
@@ -97,17 +88,11 @@ fn read_app_settings() -> AppSettings {
         dapr_pubsub_name: std::env::var("DAPR_PUBSUB_NAME")
             .unwrap_or(DEFAULT_DAPR_PUBSUB_NAME.to_string()),
 
-        dapr_pubsub_primary_file_topic: std::env::var("DAPR_PUBSUB_PRIMRY_FILE_TOPIC")
-            .unwrap_or(DEFAULT_DAPR_PRIMARY_FILE_PUBSUB_TOPIC.to_string()),
-
-        dapr_pubsub_comparison_file_topic: std::env::var("DAPR_PUBSUB_COMPARISION_FILE_TOPIC")
-            .unwrap_or(DEFAULT_DAPR_COMPARISON_FILE_PUBSUB_TOPIC.to_string()),
-
-        dapr_grpc_server_address: std::env::var("DAPR_IP")
+        dapr_pubsub_server_address: std::env::var("DAPR_IP")
             .unwrap_or(DEFAULT_DAPR_CONNECTION_URL.to_string()),
 
         recon_tasks_service_name: std::env::var("RECON_TASKS_SERVICE_NAME")
-            .unwrap_or(DEFAULT_DAPR_CONNECTION_URL.to_string()),
+            .unwrap_or(DEFAULT_RECON_TASKS_SERVICE_ID.to_string()),
 
         recon_tasks_connection_url: std::env::var("RECON_TASKS_SERVICE_HOST")
             .unwrap_or(DEFAULT_RECON_TASKS_CONNECTION_URL.to_string()),
